@@ -8,7 +8,7 @@ class Point3D:
  
     def rotateX(self, angle):
         """ Rotates the point around the X axis by the given angle in degrees. """
-        rad = angle * math.pi / 180
+        rad = math.radians(angle)
         cosa = math.cos(rad)
         sina = math.sin(rad)
         y = self.y * cosa - self.z * sina
@@ -17,7 +17,7 @@ class Point3D:
  
     def rotateY(self, angle):
         """ Rotates the point around the Y axis by the given angle in degrees. """
-        rad = angle * math.pi / 180
+        rad = math.radians(angle)
         cosa = math.cos(rad)
         sina = math.sin(rad)
         z = self.z * cosa - self.x * sina
@@ -26,7 +26,7 @@ class Point3D:
  
     def rotateZ(self, angle):
         """ Rotates the point around the Z axis by the given angle in degrees. """
-        rad = angle * math.pi / 180
+        rad = math.radians(angle)
         cosa = math.cos(rad)
         sina = math.sin(rad)
         x = self.x * cosa - self.y * sina
