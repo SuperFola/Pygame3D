@@ -85,15 +85,14 @@ class Vector2:
 
 
 class Square:
-    def __init__(self, color=(255, 255, 255), size1=256, size2=256, xpos=0, ypos=0, zpos=0):
+    def __init__(self, color=(255, 255, 255), size=256, xpos=0, ypos=0, zpos=0, default=0):
         self.color = color
-        self.size1 = size1
-        self.size2 = size2
+        self.size = size
         self.points = [
-            Point3D(0, 0, 0),
-            Point3D(1, 0, 0),
-            Point3D(1, 1, 0),
-            Point3D(0, 1, 0)
+            Point3D(default, default, default),
+            Point3D(default+1, default, default),
+            Point3D(default+1, default+1, default),
+            Point3D(default, default+1, default)
         ]
         self.xpos = xpos
         self.ypos = ypos
@@ -106,7 +105,7 @@ class Square:
         t = []
         for v in self.points:
             r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            p = r.project(screen.get_width(), screen.get_height(), (self.size1 + self.size2) // 2, 4 + self.zpos)
+            p = r.project(screen.get_width(), screen.get_height(), self.size, 4 + self.zpos)
             if not var:
                 screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
             t.append(p)
@@ -141,16 +140,24 @@ class Square:
     
     def moveZ(self, dir=1):
         self.zpos += dir
+    
+    def set_default(self, default):
+        self.points = [
+            Point3D(default, default, default),
+            Point3D(default+1, default, default),
+            Point3D(default+1, default+1, default),
+            Point3D(default, default+1, default)
+        ]
 
 
 class Pyramide:
-    def __init__(self, color=(255, 255, 255), pyra_size=256, xpos=0, ypos=0, zpos=0):
+    def __init__(self, color=(255, 255, 255), pyra_size=256, xpos=0, ypos=0, zpos=0, default=0):
         self.vertices = [
-            Point3D(0, 1, 0),
-            Point3D(-1, -1, 1),
-            Point3D(-1, -1, -1),
-            Point3D(1, -1, 1),
-            Point3D(1, -1, -1)
+            Point3D(default, default+1, default),
+            Point3D(default-1, default-1, default+1),
+            Point3D(default-1, default-1, default-1),
+            Point3D(default+1, default-1, default+1),
+            Point3D(default+1, default-1, default-1)
         ]
         
         self.angleX, self.angleY, self.angleZ = 0, 0, 0
@@ -220,19 +227,28 @@ class Pyramide:
     
     def moveZ(self, dir=1):
         self.zpos += dir
+    
+    def set_default(self, default):
+        self.vertices = [
+            Point3D(default, default+1, default),
+            Point3D(default-1, default-1, default+1),
+            Point3D(default-1, default-1, default-1),
+            Point3D(default+1, default-1, default+1),
+            Point3D(default+1, default-1, default-1)
+        ]
 
 
 class Crate:
-    def __init__(self, color=(255, 255, 255), crate_size=256, xpos=0, ypos=0, zpos=0):
+    def __init__(self, color=(255, 255, 255), crate_size=256, xpos=0, ypos=0, zpos=0, default=0):
         self.vertices = [
-            Point3D(-1, 1, -1),
-            Point3D(1, 1, -1),
-            Point3D(1, -1, -1),
-            Point3D(-1, -1, -1),
-            Point3D(-1, 1, 1),
-            Point3D(1, 1, 1),
-            Point3D(1, -1, 1),
-            Point3D(-1, -1, 1)
+            Point3D(default-1, default+1, default-1),
+            Point3D(default+1, default+1, default-1),
+            Point3D(default+1, default-1, default-1),
+            Point3D(default-1, default-1, default-1),
+            Point3D(default-1, default+1, default+1),
+            Point3D(default+1, default+1, default+1),
+            Point3D(default+1, default-1, default+1),
+            Point3D(default-1, default-1, default+1)
         ]
         # Define the vertices that compose each of the 6 faces. These numbers are
         # indices to the vertices list defined above.
@@ -304,11 +320,23 @@ class Crate:
     
     def moveZ(self, dir=1):
         self.zpos += dir
+    
+    def set_default(self, default):
+        self.vertices = [
+            Point3D(default-1, default+1, default-1),
+            Point3D(default+1, default+1, default-1),
+            Point3D(default+1, default-1, default-1),
+            Point3D(default-1, default-1, default-1),
+            Point3D(default-1, default+1, default+1),
+            Point3D(default+1, default+1, default+1),
+            Point3D(default+1, default-1, default+1),
+            Point3D(default-1, default-1, default+1)
+        ]
 
 
 class Sphere:
-    def __init__(self, color=(255, 255, 255), sphere_size=256, xpos=0, ypos=0, zpos=0, radius=2):
-        self.center = Point3D(0, 0, 0)
+    def __init__(self, color=(255, 255, 255), sphere_size=256, xpos=0, ypos=0, zpos=0, radius=2, default=0):
+        self.center = Point3D(default, default, default)
         self.radius = radius
         self.angleX, self.angleY, self.angleZ = 0, 0, 0
         self.size = 2
@@ -319,7 +347,8 @@ class Sphere:
         self.zpos = zpos
     
     def draw(self, screen, var=0):
-        p = self.center.project(screen.get_width(), screen.get_height(), self.sphere_size, 4 + self.zpos)
+        r = self.center.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+        p = r.project(screen.get_width(), screen.get_height(), self.sphere_size, 4 + self.zpos)
         radius = abs(-self.radius * (self.sphere_size / (4 - self.zpos)))
         if not var:
             screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
@@ -345,6 +374,9 @@ class Sphere:
     
     def moveZ(self, dir=1):
         self.zpos += dir
+    
+    def set_default(self, default):
+        self.center = Point3D(default, default, default)
 
 
 class Plan3D:
@@ -353,69 +385,77 @@ class Plan3D:
         self.xpos = xpos
         self.ypos = ypos
         self.zpos = zpos
-        self.angleX = 0
-        self.angleY = 0
-        self.angleZ = 0
     
     def add(self, object):
         self.objects.append(object)
     
     def draw(self, screen, var=0):
         for object in self.objects:
-            self.object.draw(screen, var)
+            object.draw(screen, var)
     
     def rotateX(self, dir=1):
-        self.angleX += dir
+        for object in self.objects:
+            object.rotateX(dir)
     
     def rotateY(self, dir=1):
-        self.angleY += dir
+        for object in self.objects:
+            object.rotateY(dir)
     
     def rotateZ(self, dir=1):
-        self.angleZ += dir
+        for object in self.objects:
+            object.rotateZ(dir)
     
     def moveX(self, dir=1):
-        self.xpos += dir
+        for object in self.objects:
+            object.moveX(dir)
     
     def moveY(self, dir=1):
-        self.ypos += dir
+        for object in self.objects:
+            object.moveY(dir)
     
     def moveZ(self, dir=1):
-        self.zpos += dir
+        for object in self.objects:
+            object.moveZ(dir)
+    
+    def foo(self):
+        i = 0
+        for obj in self.objects:
+            obj.set_default(i)
+            i -= 0.5
 
 
-class Game:
+class Demo:
     def __init__(self, screen):
         self.screen = screen
         self.font = pygame.font.SysFont("arial", 12)
-        self.objects = []
         self.fps = 60
         self.clock = pygame.time.Clock()
+        self.plan = Plan3D()
     
     def create_squares(self):
         print("Creating squares ...")
-        self.objects.append(Square(color=(150, 150, 255), size1=64, size2=128, ypos=-64))
+        self.plan.add(Square(color=(150, 150, 255), size=64))
     
     def create_crates(self):
         print("Creating crates ...")
-        self.objects.append(Crate(crate_size=64, xpos=0, color=(255, 150, 255)))
+        self.plan.add(Crate(crate_size=64, color=(255, 150, 255)))
     
     def create_pyramides(self):
         print("Creating pyramides ...")
-        self.objects.append(Pyramide(pyra_size=64, xpos=64, color=(150, 255, 255)))
+        self.plan.add(Pyramide(pyra_size=64, color=(150, 255, 255)))
     
     def create_spheres(self):
         print("Creating spheres ...")
-        self.objects.append(Sphere(sphere_size=64, ypos=64, color=(255, 255, 150)))
+        self.plan.add(Sphere(sphere_size=64, color=(255, 255, 150)))
     
     def draw_objects(self):
-        for obj in self.objects:
-            obj.draw(self.screen, var=2)
+        self.plan.draw(self.screen, 1)
     
     def rotate_objects(self):
-        for i in range(len(self.objects)):
-            self.objects[i].rotateX(1)
+        self.plan.rotateY(1)
     
     def run(self):
+        self.plan.foo()
         while 1:
             self.clock.tick(self.fps)
             
@@ -439,14 +479,14 @@ def main():
     pygame.init()
     pygame.font.init()
     screen = pygame.display.set_mode((640, 640))
-    game = Game(screen)
-    game.create_squares()
-    """game.create_pyramides()
-    game.create_crates()
-    game.create_spheres()"""
+    demo = Demo(screen)
+    demo.create_squares()
+    demo.create_pyramides()
+    demo.create_crates()
+    demo.create_spheres()
     print("Generation took %3f" % (time.time() - start))
     print("Running demo ...")
-    game.run()
+    demo.run()
     pygame.quit()
     print("Exited cleanly")
 
