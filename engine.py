@@ -347,6 +347,42 @@ class Sphere:
         self.zpos += dir
 
 
+class Plan3D:
+    def __init__(self, xpos=0, ypos=0, zpos=0):
+        self.objects = []
+        self.xpos = xpos
+        self.ypos = ypos
+        self.zpos = zpos
+        self.angleX = 0
+        self.angleY = 0
+        self.angleZ = 0
+    
+    def add(self, object):
+        self.objects.append(object)
+    
+    def draw(self, screen, var=0):
+        for object in self.objects:
+            self.object.draw(screen, var)
+    
+    def rotateX(self, dir=1):
+        self.angleX += dir
+    
+    def rotateY(self, dir=1):
+        self.angleY += dir
+    
+    def rotateZ(self, dir=1):
+        self.angleZ += dir
+    
+    def moveX(self, dir=1):
+        self.xpos += dir
+    
+    def moveY(self, dir=1):
+        self.ypos += dir
+    
+    def moveZ(self, dir=1):
+        self.zpos += dir
+
+
 class Game:
     def __init__(self, screen):
         self.screen = screen
