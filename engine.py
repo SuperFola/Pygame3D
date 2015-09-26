@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import math
 from random import randrange, randint
+from operator import itemgetter
 
 
 class Point3D:
@@ -40,7 +41,7 @@ class Point3D:
         factor = fov / (viewer_distance + self.z)
         x = self.x * factor + win_width / 2
         y = -self.y * factor + win_height / 2
-        return Point3D(x, y, 1)
+        return Point3D(x, y, self.z)
 
 
 class Vector2:
@@ -101,17 +102,17 @@ class Pyramide:
         self.ypos = ypos
         self.zpos = zpos
         
-    def draw(self, screen, points=False):
+    def draw(self, screen, var=0):
         t = []
         for v in self.vertices:
             # Rotate the point around X axis, then around Y axis, and finally around Z axis.
             r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
             # Transform the point from 3D to 2D
             p = r.project(screen.get_width(), screen.get_height(), self.pyra_size, 4 + self.zpos)
-            if points:
-                screen.fill(self.color, (p.x, p.y, self.size, self.size))
+            if not var:
+                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
             t.append(p)
-        if not points:
+        if var == 1:
             pygame.draw.line(screen, self.color, (t[0].x + self.xpos, t[0].y + self.ypos), (t[1].x + self.xpos, t[1].y + self.ypos))
             pygame.draw.line(screen, self.color, (t[0].x + self.xpos, t[0].y + self.ypos), (t[2].x + self.xpos, t[2].y + self.ypos))
             pygame.draw.line(screen, self.color, (t[0].x + self.xpos, t[0].y + self.ypos), (t[3].x + self.xpos, t[3].y + self.ypos))
@@ -120,6 +121,28 @@ class Pyramide:
             pygame.draw.line(screen, self.color, (t[2].x + self.xpos, t[2].y + self.ypos), (t[4].x + self.xpos, t[4].y + self.ypos))
             pygame.draw.line(screen, self.color, (t[3].x + self.xpos, t[3].y + self.ypos), (t[4].x + self.xpos, t[4].y + self.ypos))
             pygame.draw.line(screen, self.color, (t[1].x + self.xpos, t[1].y + self.ypos), (t[3].x + self.xpos, t[3].y + self.ypos))
+        if var == 2:
+            points = [
+                (t[0].x + self.xpos, t[0].y + self.ypos), (t[1].x + self.xpos, t[1].y + self.ypos), (t[2].x + self.xpos, t[2].y + self.ypos)
+            ]
+            pygame.draw.polygon(screen, self.color, points)
+            points = [
+                (t[0].x + self.xpos, t[0].y + self.ypos), (t[2].x + self.xpos, t[2].y + self.ypos), (t[4].x + self.xpos, t[4].y + self.ypos)
+            ]
+            pygame.draw.polygon(screen, self.color, points)
+            points = [
+                (t[0].x + self.xpos, t[0].y + self.ypos), (t[3].x + self.xpos, t[3].y + self.ypos), (t[4].x + self.xpos, t[4].y + self.ypos)
+            ]
+            pygame.draw.polygon(screen, self.color, points)
+            points = [
+                (t[0].x + self.xpos, t[0].y + self.ypos), (t[1].x + self.xpos, t[1].y + self.ypos), (t[2].x + self.xpos, t[2].y + self.ypos)
+            ]
+            pygame.draw.polygon(screen, self.color, points)
+            points = [
+                (t[1].x + self.xpos, t[1].y + self.ypos), (t[2].x + self.xpos, t[2].y + self.ypos),
+                (t[4].x + self.xpos, t[4].y + self.ypos), (t[3].x + self.xpos, t[3].y + self.ypos)
+            ]
+            pygame.draw.polygon(screen, self.color, points)
         
     def rotateX(self, dir=1):
         self.angleX += dir
@@ -171,23 +194,40 @@ class Crate:
         self.ypos = ypos
         self.zpos = zpos
     
-    def draw(self, screen, points=False):
+    def draw(self, screen, var=0):
         t = []
         for v in self.vertices:
             # Rotate the point around X axis, then around Y axis, and finally around Z axis.
             r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
             # Transform the point from 3D to 2D
             p = r.project(screen.get_width(), screen.get_height(), self.crate_size, 4 + self.zpos)
-            if points:
+            if not var:
                 screen.fill(self.color, (p.x, p.y, self.size, self.size))
             t.append(p)
-        if not points:
+        if var == 1:
             for f in self.faces:
                 pygame.draw.line(screen, self.color, (t[f[0]].x + self.xpos, t[f[0]].y + self.ypos), (t[f[1]].x + self.xpos, t[f[1]].y + self.ypos))
                 pygame.draw.line(screen, self.color, (t[f[1]].x + self.xpos, t[f[1]].y + self.ypos), (t[f[2]].x + self.xpos, t[f[2]].y + self.ypos))
                 pygame.draw.line(screen, self.color, (t[f[2]].x + self.xpos, t[f[2]].y + self.ypos), (t[f[3]].x + self.xpos, t[f[3]].y + self.ypos))
                 pygame.draw.line(screen, self.color, (t[f[3]].x + self.xpos, t[f[3]].y + self.ypos), (t[f[0]].x + self.xpos, t[f[0]].y + self.ypos))
-
+        if var == 2:
+            avg_z = []
+            i = 0
+            for f in self.faces:
+                z = (t[f[0]].z + t[f[1]].z + t[f[2]].z + t[f[3]].z) / 4.0
+                avg_z.append([i, z])
+                i += 1
+            for tmp in sorted(avg_z, key=itemgetter(1), reverse=True):
+                face_index = tmp[0]
+                f = self.faces[face_index]
+                points = [
+                    (t[f[0]].x, t[f[0]].y), (t[f[1]].x, t[f[1]].y),
+                    (t[f[1]].x, t[f[1]].y), (t[f[2]].x, t[f[2]].y),
+                    (t[f[2]].x, t[f[2]].y), (t[f[3]].x, t[f[3]].y),
+                    (t[f[3]].x, t[f[3]].y), (t[f[0]].x, t[f[0]].y)
+                ]
+                pygame.draw.polygon(screen, self.color, points)
+    
     def rotateX(self, dir=1):
         self.angleX += dir
     
@@ -209,7 +249,7 @@ class Crate:
 
 class Sphere:
     def __init__(self, color=(255, 255, 255), sphere_size=256, xpos=0, ypos=0, zpos=0, radius=2):
-        self.center = Point3D(xpos, ypos, zpos)
+        self.center = Point3D(0, 0, 0)
         self.radius = radius
         self.angleX, self.angleY, self.angleZ = 0, 0, 0
         self.size = 2
@@ -219,12 +259,15 @@ class Sphere:
         self.ypos = ypos
         self.zpos = zpos
     
-    def draw(self, screen, points=False):
-        # Transform the point from 3D to 2D
+    def draw(self, screen, var=0):
         p = self.center.project(screen.get_width(), screen.get_height(), self.sphere_size, 4 + self.zpos)
-        radius = self.radius * self.sphere_size / (4 + self.zpos)
-        print(self.sphere / (4 + self.zpos))
-        pygame.draw.circle(screen, self.color, (int(p.x), int(p.y)), int(radius), 1)
+        radius = abs(-self.radius * (self.sphere_size / (4 - self.zpos)))
+        if not var:
+            screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
+        if var == 1:
+            pygame.draw.circle(screen, self.color, (int(p.x) + self.xpos, int(p.y) + self.ypos), int(radius), 1)
+        if var == 2:
+            pygame.draw.circle(screen, self.color, (int(p.x) + self.xpos, int(p.y) + self.ypos), int(radius), 0)
 
     def rotateX(self, dir=1):
         self.angleX += dir
@@ -248,22 +291,26 @@ class Sphere:
 class Game:
     def __init__(self, screen):
         self.screen = screen
+        self.font = pygame.font.SysFont("arial", 12)
         self.objects = []
-        self.color = (50, 180, 70)
+        self.fps = 60
         self.clock = pygame.time.Clock()
     
     def create_crates(self):
-        self.objects.append(Crate(crate_size=64))
+        print("Creating crates ...")
+        self.objects.append(Crate(crate_size=64, xpos=0, color=(255, 150, 255)))
     
     def create_pyramides(self):
-        self.objects.append(Pyramide(pyra_size=64))
+        print("Creating pyramides ...")
+        self.objects.append(Pyramide(pyra_size=64, xpos=64, color=(150, 255, 255)))
     
     def create_spheres(self):
-        self.objects.append(Sphere(sphere_size=64, zpos=0))
+        print("Creating spheres ...")
+        self.objects.append(Sphere(sphere_size=64, ypos=64, color=(255, 255, 150)))
     
     def draw_objects(self):
-        for pyramide in self.objects:
-            pyramide.draw(self.screen)
+        for obj in self.objects:
+            obj.draw(self.screen, var=2)
     
     def rotate_objects(self):
         for i in range(len(self.objects)):
@@ -271,7 +318,7 @@ class Game:
     
     def run(self):
         while 1:
-            self.clock.tick(60)
+            self.clock.tick(self.fps)
             
             event = pygame.event.poll()
             if event.type == QUIT:
@@ -281,6 +328,8 @@ class Game:
             self.draw_objects()
             self.rotate_objects()
             
+            self.screen.blit(self.font.render("FPS:" + str(self.clock.get_fps()), 1, (180, 255, 255)), (0, 0))
+            
             pygame.display.flip()
 
 
@@ -289,13 +338,11 @@ def main():
     print("Starting ...")
     start = time.time()
     pygame.init()
+    pygame.font.init()
     screen = pygame.display.set_mode((640, 640))
     game = Game(screen)
-    print("Creating pyramides ...")
     game.create_pyramides()
-    print("Creating crates ...")
     game.create_crates()
-    print("Creating spheres ...")
     game.create_spheres()
     print("Generation took %3f" % (time.time() - start))
     print("Running demo ...")
