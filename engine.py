@@ -87,7 +87,8 @@ class Vector2:
 class Square:
     def __init__(self, color=(255, 255, 255), size=256, xpos=0, ypos=0, zpos=0, default=0):
         self.color = color
-        self.size = size
+        self.square_size = size
+        self.size = 2
         self.points = [
             Point3D(default, default, default),
             Point3D(default+1, default, default),
@@ -105,7 +106,7 @@ class Square:
         t = []
         for v in self.points:
             r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            p = r.project(screen.get_width(), screen.get_height(), self.size, 4 + self.zpos)
+            p = r.project(screen.get_width(), screen.get_height(), self.square_size, 4 + self.zpos)
             if not var:
                 screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
             t.append(p)
@@ -385,23 +386,53 @@ class Plan3D:
         self.xpos = xpos
         self.ypos = ypos
         self.zpos = zpos
+        self.axis = [
+            Point3D(0, 0, 0),
+            Point3D(1, 0, 0),
+            Point3D(0, 1, 0),
+            Point3D(0, 0, 1)
+        ]
+        self.angleX = 0
+        self.angleY = 0
+        self.angleZ = 0
+        self.font = pygame.font.SysFont("arial", 12)
+        self.axeX = self.font.render("X", 1, (255, 255, 255))
+        self.axeY = self.font.render("Y", 1, (255, 255, 255))
+        self.axeZ = self.font.render("Z", 1, (255, 255, 255))
     
     def add(self, object):
         self.objects.append(object)
     
+    def draw_axis(self, screen):
+        t = []
+        for axe in self.axis:
+            r = axe.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            p = r.project(screen.get_width(), screen.get_height(), 256, 4)
+            t.append(p)
+        pygame.draw.line(screen, RED, (t[0].x, t[0].y), (t[1].x, t[1].y))
+        screen.blit(self.axeX, (t[1].x, t[1].y))
+        pygame.draw.line(screen, GREEN, (t[0].x, t[0].y), (t[2].x, t[2].y))
+        screen.blit(self.axeY, (t[2].x, t[2].y))
+        pygame.draw.line(screen, BLUE, (t[0].x, t[0].y), (t[3].x, t[3].y))
+        screen.blit(self.axeZ, (t[3].x, t[3].y))
+    
     def draw(self, screen, var=0):
+        self.draw_axis(screen)
         for object in self.objects:
             object.draw(screen, var)
     
     def rotateX(self, dir=1):
+        self.angleX += dir
         for object in self.objects:
             object.rotateX(dir)
     
     def rotateY(self, dir=1):
+        self.angleY += dir
         for object in self.objects:
             object.rotateY(dir)
     
     def rotateZ(self, dir=1):
+        self.angleZ += dir
         for object in self.objects:
             object.rotateZ(dir)
     
@@ -424,72 +455,6 @@ class Plan3D:
             i -= 0.5
 
 
-class Demo:
-    def __init__(self, screen):
-        self.screen = screen
-        self.font = pygame.font.SysFont("arial", 12)
-        self.fps = 60
-        self.clock = pygame.time.Clock()
-        self.plan = Plan3D()
-    
-    def create_squares(self):
-        print("Creating squares ...")
-        self.plan.add(Square(color=(150, 150, 255), size=64))
-    
-    def create_crates(self):
-        print("Creating crates ...")
-        self.plan.add(Crate(crate_size=64, color=(255, 150, 255)))
-    
-    def create_pyramides(self):
-        print("Creating pyramides ...")
-        self.plan.add(Pyramide(pyra_size=64, color=(150, 255, 255)))
-    
-    def create_spheres(self):
-        print("Creating spheres ...")
-        self.plan.add(Sphere(sphere_size=64, color=(255, 255, 150)))
-    
-    def draw_objects(self):
-        self.plan.draw(self.screen, 1)
-    
-    def rotate_objects(self):
-        self.plan.rotateY(1)
-    
-    def run(self):
-        self.plan.foo()
-        while 1:
-            self.clock.tick(self.fps)
-            
-            event = pygame.event.poll()
-            if event.type == QUIT:
-                break
-            
-            self.screen.fill((0, 0, 0))
-            self.draw_objects()
-            self.rotate_objects()
-            
-            self.screen.blit(self.font.render("FPS:" + str(self.clock.get_fps()), 1, (180, 255, 255)), (0, 0))
-            
-            pygame.display.flip()
-
-
-def main():
-    import time
-    print("Starting ...")
-    start = time.time()
-    pygame.init()
-    pygame.font.init()
-    screen = pygame.display.set_mode((640, 640))
-    demo = Demo(screen)
-    demo.create_squares()
-    demo.create_pyramides()
-    demo.create_crates()
-    demo.create_spheres()
-    print("Generation took %3f" % (time.time() - start))
-    print("Running demo ...")
-    demo.run()
-    pygame.quit()
-    print("Exited cleanly")
-
-
-if __name__ == '__main__':
-    main()
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
