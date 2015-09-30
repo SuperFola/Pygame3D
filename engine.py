@@ -1,4 +1,5 @@
 import pygame
+import os
 from pygame.locals import *
 import math
 from random import randrange, randint
@@ -188,6 +189,30 @@ class Camera(object):
         self.planey = float(planey)
 
 
+class Mesh:
+    def __init__(self, path_to_image, colorKey=None):
+        self.path = path_to_image
+        self.mesh = []
+        self.colorKey = colorKey
+    
+    def load(self):
+        if os.path.exists(self.path):
+            self.mesh = [
+                load_image(self.path, False, self.colorKey),
+                load_image(self.path, True, self.colorKey)
+            ]
+        else:
+            raise UnboundLocalError("Impossible to load an undefined image from 'path_to_image' !")
+    
+    def apply(self):
+        pass
+    
+    def get_mesh(self, darken=-1, index=-1):
+        if index == -1 and darken == -1:
+            return self.mesh
+        return self.mesh[darken][index]
+
+
 class Point3D:
     def __init__(self, x = 0, y = 0, z = 0):
         self.x, self.y, self.z = float(x), float(y), float(z)
@@ -306,6 +331,9 @@ class Square:
                 (t[3].x + self.xpos, t[3].y + self.ypos)
             ]
             pygame.draw.polygon(screen, self.color, points)
+        if var == 3:
+            # apply mesh
+            raise NotImplementedError
     
     def rotateX(self, dir=1):
         self.angleX += dir
@@ -486,6 +514,9 @@ class Crate:
                     (t[f[3]].x + self.xpos, t[f[3]].y + self.ypos), (t[f[0]].x + self.xpos, t[f[0]].y + self.ypos)
                 ]
                 pygame.draw.polygon(screen, self.color, points)
+        if var == 3:
+            #apply a mesh
+            raise NotImplementedError
     
     def rotateX(self, dir=1):
         self.angleX += dir
