@@ -204,8 +204,14 @@ class Mesh:
         else:
             raise UnboundLocalError("Impossible to load an undefined image from 'path_to_image' !")
     
-    def apply(self):
-        pass
+    def is_loaded(self):
+        if len(self.mesh) > 0:
+            return True
+        return False
+    
+    def apply(self, x, y, xd, yd, surf, darken=0):
+        img = pygame.transform.scale(self.mesh[darken][int(xd)], (1, int(yd)))
+        surf.blit(img, (x, y))
     
     def get_mesh(self, darken=-1, index=-1):
         if index == -1 and darken == -1:
@@ -222,27 +228,24 @@ class Point3D:
         rad = math.radians(angle)
         cosa = math.cos(rad)
         sina = math.sin(rad)
-        y = self.y * cosa - self.z * sina
-        z = self.y * sina + self.z * cosa
-        return Point3D(self.x, y, z)
+        self.y = self.y * cosa - self.z * sina
+        self.z = self.y * sina + self.z * cosa
  
     def rotateY(self, angle):
         """ Rotates the point around the Y axis by the given angle in degrees. """
         rad = math.radians(angle)
         cosa = math.cos(rad)
         sina = math.sin(rad)
-        z = self.z * cosa - self.x * sina
-        x = self.z * sina + self.x * cosa
-        return Point3D(x, self.y, z)
+        self.z = self.z * cosa - self.x * sina
+        self.x = self.z * sina + self.x * cosa
  
     def rotateZ(self, angle):
         """ Rotates the point around the Z axis by the given angle in degrees. """
         rad = math.radians(angle)
         cosa = math.cos(rad)
         sina = math.sin(rad)
-        x = self.x * cosa - self.y * sina
-        y = self.x * sina + self.y * cosa
-        return Point3D(x, y, self.z)
+        self.x = self.x * cosa - self.y * sina
+        self.y = self.x * sina + self.y * cosa
  
     def project(self, win_width, win_height, fov, viewer_distance):
         """ Transforms this 3D point to 2D using a perspective projection. """
@@ -250,6 +253,37 @@ class Point3D:
         x = self.x * factor + win_width / 2
         y = -self.y * factor + win_height / 2
         return Point3D(x, y, self.z)
+
+
+class BaseObject:
+    def __init__(self, color=(255, 255, 255), size=256, xpos=0, ypos=0, zpos=0, default=0):
+        self.angleX, self.angleY, self.angleZ = 0, 0, 0
+        self.size = size
+        self.xpos = xpos
+        self.ypos = ypos
+        self.zpos = zpos
+        self.color = color
+
+    def draw(self):
+        pass
+
+    def rotateX(self, dir=1):
+        self.angleX = dir
+
+    def rotateY(self, dir=1):
+        self.angleY = dir
+
+    def rotateZ(self, dir=1):
+        self.angleZ = dir
+
+    def moveX(self, dir=1):
+        self.xpos = dir
+
+    def moveY(self, dir=1):
+        self.ypos = dir
+
+    def moveZ(self, dir=1):
+        self.zpos = dir
 
 
 class Vector2:
@@ -292,31 +326,25 @@ class Vector2:
         return self.vector2[0] + pos[0], self.vector2[1] + pos[1]
 
 
-class Square:
+class Square(BaseObject):
     def __init__(self, color=(255, 255, 255), size=256, xpos=0, ypos=0, zpos=0, default=0):
-        self.color = color
-        self.square_size = size
-        self.size = 2
+        super().__init__(color, size, xpos, ypos, zpos)
         self.points = [
             Point3D(default, default, default),
             Point3D(default+1, default, default),
             Point3D(default+1, default+1, default),
             Point3D(default, default+1, default)
         ]
-        self.xpos = xpos
-        self.ypos = ypos
-        self.zpos = zpos
-        self.angleX = 0
-        self.angleY = 0
-        self.angleZ = 0
     
     def draw(self, screen, var=0):
         t = []
         for v in self.points:
-            r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            p = r.project(screen.get_width(), screen.get_height(), self.square_size, 4 + self.zpos)
+            v.rotateX(self.angleX)
+            v.rotateY(self.angleY)
+            v.rotateZ(self.angleZ)
+            p = v.project(screen.get_width(), screen.get_height(), self.size, 4 + self.zpos)
             if not var:
-                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
+                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, DOT, DOT))
             t.append(p)
         if var == 1:
             pygame.draw.line(screen, self.color, (t[0].x + self.xpos, t[0].y + self.ypos), (t[1].x + self.xpos, t[1].y + self.ypos))
@@ -334,36 +362,11 @@ class Square:
         if var == 3:
             # apply mesh
             raise NotImplementedError
-    
-    def rotateX(self, dir=1):
-        self.angleX += dir
-    
-    def rotateY(self, dir=1):
-        self.angleY += dir
-    
-    def rotateZ(self, dir=1):
-        self.angleZ += dir
-    
-    def moveX(self, dir=1):
-        self.xpos += dir
-    
-    def moveY(self, dir=1):
-        self.ypos += dir
-    
-    def moveZ(self, dir=1):
-        self.zpos += dir
-    
-    def set_default(self, default):
-        self.points = [
-            Point3D(default, default, default),
-            Point3D(default+1, default, default),
-            Point3D(default+1, default+1, default),
-            Point3D(default, default+1, default)
-        ]
 
 
-class Pyramide:
-    def __init__(self, color=(255, 255, 255), pyra_size=256, xpos=0, ypos=0, zpos=0, default=0):
+class Pyramide(BaseObject):
+    def __init__(self, color=(255, 255, 255), size=256, xpos=0, ypos=0, zpos=0, default=0):
+        super().__init__(color, size, xpos, ypos, zpos)
         self.vertices = [
             Point3D(default, default+1, default),
             Point3D(default-1, default-1, default+1),
@@ -372,23 +375,17 @@ class Pyramide:
             Point3D(default+1, default-1, default-1)
         ]
         
-        self.angleX, self.angleY, self.angleZ = 0, 0, 0
-        self.size = 2
-        self.color = color
-        self.pyra_size = pyra_size
-        self.xpos = xpos
-        self.ypos = ypos
-        self.zpos = zpos
-        
     def draw(self, screen, var=0):
         t = []
         for v in self.vertices:
             # Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            v.rotateX(self.angleX)
+            v.rotateY(self.angleY)
+            v.rotateZ(self.angleZ)
             # Transform the point from 3D to 2D
-            p = r.project(screen.get_width(), screen.get_height(), self.pyra_size, 4 + self.zpos)
+            p = v.project(screen.get_width(), screen.get_height(), self.size, 4 + self.zpos)
             if not var:
-                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
+                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, DOT, DOT))
             t.append(p)
         if var == 1:
             pygame.draw.line(screen, self.color, (t[0].x + self.xpos, t[0].y + self.ypos), (t[1].x + self.xpos, t[1].y + self.ypos))
@@ -421,37 +418,11 @@ class Pyramide:
                 (t[4].x + self.xpos, t[4].y + self.ypos), (t[3].x + self.xpos, t[3].y + self.ypos)
             ]
             pygame.draw.polygon(screen, self.color, points)
-        
-    def rotateX(self, dir=1):
-        self.angleX += dir
-    
-    def rotateY(self, dir=1):
-        self.angleY += dir
-    
-    def rotateZ(self, dir=1):
-        self.angleZ += dir
-    
-    def moveX(self, dir=1):
-        self.xpos += dir
-    
-    def moveY(self, dir=1):
-        self.ypos += dir
-    
-    def moveZ(self, dir=1):
-        self.zpos += dir
-    
-    def set_default(self, default):
-        self.vertices = [
-            Point3D(default, default+1, default),
-            Point3D(default-1, default-1, default+1),
-            Point3D(default-1, default-1, default-1),
-            Point3D(default+1, default-1, default+1),
-            Point3D(default+1, default-1, default-1)
-        ]
 
 
-class Crate:
-    def __init__(self, color=(255, 255, 255), crate_size=256, xpos=0, ypos=0, zpos=0, default=0):
+class Crate(BaseObject):
+    def __init__(self, color=(255, 255, 255), size=256, xpos=0, ypos=0, zpos=0, default=0, mesh=None):
+        super().__init__(color, size, xpos, ypos, zpos)
         self.vertices = [
             Point3D(default-1, default+1, default-1),
             Point3D(default+1, default+1, default-1),
@@ -472,24 +443,19 @@ class Crate:
             (0, 4, 5, 1),
             (3, 2, 6, 7)
         ]
-        
-        self.angleX, self.angleY, self.angleZ = 0, 0, 0
-        self.size = 2
-        self.color = color
-        self.crate_size = crate_size
-        self.xpos = xpos
-        self.ypos = ypos
-        self.zpos = zpos
+        self.mesh = mesh
     
     def draw(self, screen, var=0):
         t = []
         for v in self.vertices:
             # Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            v.rotateX(self.angleX)
+            v.rotateY(self.angleY)
+            v.rotateZ(self.angleZ)
             # Transform the point from 3D to 2D
-            p = r.project(screen.get_width(), screen.get_height(), self.crate_size, 4 + self.zpos)
+            p = v.project(screen.get_width(), screen.get_height(), self.size, 4 + self.zpos)
             if not var:
-                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
+                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, DOT, DOT))
             t.append(p)
         if var == 1:
             for f in self.faces:
@@ -516,86 +482,51 @@ class Crate:
                 pygame.draw.polygon(screen, self.color, points)
         if var == 3:
             #apply a mesh
-            raise NotImplementedError
-    
-    def rotateX(self, dir=1):
-        self.angleX += dir
-    
-    def rotateY(self, dir=1):
-        self.angleY += dir
-    
-    def rotateZ(self, dir=1):
-        self.angleZ += dir
-    
-    def moveX(self, dir=1):
-        self.xpos += dir
-    
-    def moveY(self, dir=1):
-        self.ypos += dir
-    
-    def moveZ(self, dir=1):
-        self.zpos += dir
-    
-    def set_default(self, default):
-        self.vertices = [
-            Point3D(default-1, default+1, default-1),
-            Point3D(default+1, default+1, default-1),
-            Point3D(default+1, default-1, default-1),
-            Point3D(default-1, default-1, default-1),
-            Point3D(default-1, default+1, default+1),
-            Point3D(default+1, default+1, default+1),
-            Point3D(default+1, default-1, default+1),
-            Point3D(default-1, default-1, default+1)
-        ]
+            if not self.mesh.is_loaded():
+                self.mesh.load()
+            for f in self.faces:
+                pointsx = [
+                    (t[f[0]].x + self.xpos, t[f[1]].x + self.xpos),
+                    (t[f[1]].x + self.xpos, t[f[2]].x + self.xpos),
+                    (t[f[2]].x + self.xpos, t[f[3]].x + self.xpos),
+                    (t[f[3]].x + self.xpos, t[f[0]].x + self.xpos)
+                ]
+                pointsy = [
+                    (t[f[0]].y + self.ypos, t[f[1]].y + self.ypos),
+                    (t[f[1]].y + self.ypos, t[f[2]].y + self.ypos),
+                    (t[f[2]].y + self.ypos, t[f[3]].y + self.ypos),
+                    (t[f[3]].y + self.ypos, t[f[0]].y + self.ypos)
+                ]
+                for d in range(64):
+                    for p in range(4):
+                        xd = d
+                        yd = 64
+                        self.mesh.apply(pointsx[p][0], pointsy[p][0], xd, yd, screen)
 
 
-class Sphere:
-    def __init__(self, color=(255, 255, 255), sphere_size=256, xpos=0, ypos=0, zpos=0, radius=2, default=0):
+class Sphere(BaseObject):
+    def __init__(self, color=(255, 255, 255), size=256, xpos=0, ypos=0, zpos=0, radius=2, default=0):
+        super().__init__(color, size, xpos, ypos, zpos)
         self.center = Point3D(default, default, default)
         self.radius = radius
-        self.angleX, self.angleY, self.angleZ = 0, 0, 0
-        self.size = 2
-        self.color = color
-        self.sphere_size = sphere_size
-        self.xpos = xpos
-        self.ypos = ypos
-        self.zpos = zpos
     
     def draw(self, screen, var=0):
-        r = self.center.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-        p = r.project(screen.get_width(), screen.get_height(), self.sphere_size, 4 + self.zpos)
-        radius = abs(-self.radius * (self.sphere_size / (4 - self.zpos)))
+        self.center.rotateX(self.angleX)
+        self.center.rotateY(self.angleY)
+        self.center.rotateZ(self.angleZ)
+        p = self.center.project(screen.get_width(), screen.get_height(), self.size, 4 + self.zpos)
+        radius = abs(self.radius * (self.size / (4 - self.zpos)))
         if not var:
-            screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
+            screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, DOT, DOT))
         if var == 1:
             pygame.draw.circle(screen, self.color, (int(p.x) + self.xpos, int(p.y) + self.ypos), int(radius), 1)
         if var == 2:
             pygame.draw.circle(screen, self.color, (int(p.x) + self.xpos, int(p.y) + self.ypos), int(radius), 0)
 
-    def rotateX(self, dir=1):
-        self.angleX += dir
-    
-    def rotateY(self, dir=1):
-        self.angleY += dir
-    
-    def rotateZ(self, dir=1):
-        self.angleZ += dir
-    
-    def moveX(self, dir=1):
-        self.xpos += dir
-    
-    def moveY(self, dir=1):
-        self.ypos += dir
-    
-    def moveZ(self, dir=1):
-        self.zpos += dir
-    
-    def set_default(self, default):
-        self.center = Point3D(default, default, default)
 
-
-class Plan3D:
+class Plan3D(BaseObject):
     def __init__(self, xpos=0, ypos=0, zpos=0):
+        super().__init__(xpos=xpos, ypos=ypos, zpos=zpos)
         self.objects = []
         self.xpos = xpos
         self.ypos = ypos
@@ -620,8 +551,10 @@ class Plan3D:
     def draw_axis(self, screen):
         t = []
         for axe in self.axis:
-            r = axe.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            p = r.project(screen.get_width(), screen.get_height(), 256, 4)
+            axe.rotateX(self.angleX)
+            axe.rotateY(self.angleY)
+            axe.rotateZ(self.angleZ)
+            p = axe.project(screen.get_width(), screen.get_height(), 256, 4)
             t.append(p)
         pygame.draw.line(screen, RED, (t[0].x, t[0].y), (t[1].x, t[1].y))
         screen.blit(self.axeX, (t[1].x, t[1].y))
@@ -661,14 +594,9 @@ class Plan3D:
     def moveZ(self, dir=1):
         for object in self.objects:
             object.moveZ(dir)
-    
-    def foo(self):
-        i = 0
-        for obj in self.objects:
-            obj.set_default(i)
-            i -= 0.5
 
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+DOT = 2
