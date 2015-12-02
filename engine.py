@@ -277,6 +277,9 @@ class Square:
     def get_vertices(self):
         return [(i[0] + self.xpos, i[1] + self.ypos, i[2] + self.zpos) for i in self.vertices]
     
+    def get_2D_pos(self, screen):
+        return [tuple(v.project(screen.get_width(), screen.get_height(), self.crate_size, 4 + self.zpos)) for v in self.vertices]
+    
     def get_size(self):
         return self.square_size
 
@@ -333,6 +336,9 @@ class Line:
     
     def get_vertices(self):
         return [(i[0] + self.xpos, i[1] + self.ypos, i[2] + self.zpos) for i in self.vertices]
+    
+    def get_2D_pos(self, screen):
+        return [tuple(v.project(screen.get_width(), screen.get_height(), self.crate_size, 4 + self.zpos)) for v in self.vertices]
     
     def get_size(self):
         return self.size
@@ -427,6 +433,9 @@ class Pyramide:
     
     def get_vertices(self):
         return [(i[0] + self.xpos, i[1] + self.ypos, i[2] + self.zpos) for i in self.vertices]
+    
+    def get_2D_pos(self, screen):
+        return [tuple(v.project(screen.get_width(), screen.get_height(), self.crate_size, 4 + self.zpos)) for v in self.vertices]
     
     def get_size(self):
         return self.pyra_size
@@ -532,6 +541,9 @@ class Crate:
     
     def get_vertices(self):
         return [(i[0] + self.xpos, i[1] + self.ypos, i[2] + self.zpos) for i in self.vertices]
+    
+    def get_2D_pos(self, screen):
+        return [tuple(v.project(screen.get_width(), screen.get_height(), self.crate_size, 4 + self.zpos)) for v in self.vertices]
     
     def get_size(self):
         return self.crate_size
@@ -653,6 +665,9 @@ class Hypercube:
     def set_vertices(self, x, y, z):
         raise NotImplementedError
     
+    def get_2D_pos(self, screen):
+        return [tuple(v.project(screen.get_width(), screen.get_height(), self.crate_size, 4 + self.zpos)) for v in self.vertices]
+    
     def get_size(self):
         return self.crate_size
 
@@ -704,6 +719,9 @@ class Sphere:
     def get_vertices(self):
         return [(i[0] + self.xpos, i[1] + self.ypos, i[2] + self.zpos) for i in self.vertices]
     
+    def get_2D_pos(self, screen):
+        return [tuple(self.center.project(screen.get_width(), screen.get_height(), self.sphere_size, 4 + self.zpos))]
+    
     def get_size(self):
         return self.sphere_size
 
@@ -745,9 +763,17 @@ class Plan3D:
         pygame.draw.line(screen, BLUE, (t[0].x, t[0].y), (t[3].x, t[3].y))
         screen.blit(self.axeZ, (t[3].x, t[3].y))
     
-    def draw(self, screen, var=0):
+    def get_objects(self):
+        return self.objects
+    
+    def draw(self, screen, var=0, only_visible=False):
         for object in self.objects:
-            object.draw(screen, var)
+            if only_visible:
+                p = sorted(object.get_2D_pos(screen))[0]
+                if 0 <= p[0] <= screen.get_width() and 0 <= p[1] <= screen.get_height():
+                    object.draw(screen, var)
+            else:
+                object.draw(screen, var)
     
     def rotateX(self, dir=1):
         self.angleX += dir
@@ -794,7 +820,7 @@ class Scene:
         self.plan.add(*objects)
     
     def draw(self):
-        self.plan.draw(self.screen, self.method)
+        self.plan.draw(self.screen, self.method, only_visible=True)
         if self.axis:
             self.plan.draw_axis(self.screen)
     

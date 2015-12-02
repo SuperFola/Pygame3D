@@ -12,28 +12,33 @@ class Demo:
         self.clock = pygame.time.Clock()
         self.plan = Plan3D()
     
-    def create_squares(self):
+    def create_squares(self, nb=10):
         print("Creating squares ...")
-        for _ in range(10):
-            self.plan.add(Square(color=(150, 150, 255), size=64, xpos=random.randrange(0, 300, 32)))
+        for _ in range(nb):
+            self.plan.add(Square(color=(150, 150, 255), size=64, xpos=random.randrange(-1000, 1000, 32)))
     
-    def create_crates(self):
+    def create_crates(self, nb=10):
         print("Creating crates ...")
-        for _ in range(10):
-            self.plan.add(Crate(size=64, color=(255, 150, 255), ypos=random.randrange(0, 300, 32)))
+        for _ in range(nb):
+            self.plan.add(Crate(size=64, color=(255, 150, 255), ypos=random.randrange(-1000, 1000, 32)))
     
-    def create_pyramides(self):
+    def create_pyramides(self, nb=10):
         print("Creating pyramides ...")
-        for _ in range(10):
-            self.plan.add(Pyramide(size=64, color=(150, 255, 255), xpos=random.randrange(0, 300, 32), ypos=random.randrange(0, 300, 32)))
+        for _ in range(nb):
+            self.plan.add(Pyramide(size=64, color=(150, 255, 255), xpos=random.randrange(-1000, 1000, 32), ypos=random.randrange(-1000, 1000, 32)))
     
-    def create_spheres(self):
+    def create_spheres(self, nb=10):
         print("Creating spheres ...")
-        for _ in range(10):
-            self.plan.add(Sphere(size=64, color=(255, 255, 150), xpos=random.randrange(0, 300, 32), ypos=random.randrange(0, 300, 32)))
+        for _ in range(nb):
+            self.plan.add(Sphere(size=64, color=(255, 255, 150), xpos=random.randrange(-1000, 1000, 32), ypos=random.randrange(-1000, 1000, 32)))
+    
+    def create_hypercubes(self, nb=10):
+        print("Creating hypercubes ...")
+        for _ in range(nb):
+            self.plan.add(Hypercube(size=64, color=(150, 255, 150), xpos=random.randrange(-1000, 1000, 32), ypos=random.randrange(-1000, 1000, 32)))
     
     def draw_objects(self):
-        self.plan.draw(self.screen, 0)
+        self.plan.draw(self.screen, 1)
     
     def rotate_objects(self):
         self.plan.rotateY(1)
@@ -66,10 +71,11 @@ def main():
     pygame.font.init()
     screen = pygame.display.set_mode((640, 640))
     demo = Demo(screen)
-    demo.create_squares()
-    demo.create_pyramides()
-    demo.create_crates()
-    demo.create_spheres()
+    #demo.create_squares()
+    #demo.create_pyramides()
+    #demo.create_crates()
+    #demo.create_spheres()
+    demo.create_hypercubes(100)
     print("Generation took %3f" % (time.time() - start))
     print("Running demo ...")
     demo.run()

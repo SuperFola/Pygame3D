@@ -23,6 +23,9 @@ class Point3D:
         elif i == 2:
             return self.z
         raise IndexError
+    
+    def __next__(self):
+        return (self.x, self.y, self.z)
  
     def rotateX(self, angle):
         """ Rotates the point around the X axis by the given angle in degrees. """
