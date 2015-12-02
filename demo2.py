@@ -1,4 +1,4 @@
-from engine import *
+from engine import Plan3D, Sphere, Crate, Square, Pyramide, Mesh
 import random
 import pygame
 from pygame.locals import *
@@ -19,8 +19,8 @@ class Demo:
     
     def create_crates(self):
         print("Creating crates ...")
-        for _ in range(10):
-            self.plan.add(Crate(size=64, color=(255, 150, 255), ypos=random.randrange(0, 300, 32)))
+        for _ in range(100):
+            self.plan.add(Crate(size=64, color=(255, 150, 255), ypos=random.randrange(0, 300, 32), mesh=Mesh("pics/walls/redbrick.png")))
     
     def create_pyramides(self):
         print("Creating pyramides ...")
@@ -33,15 +33,13 @@ class Demo:
             self.plan.add(Sphere(size=64, color=(255, 255, 150), xpos=random.randrange(0, 300, 32), ypos=random.randrange(0, 300, 32)))
     
     def draw_objects(self):
-        self.plan.draw(self.screen, 0)
+        self.plan.draw(self.screen, 1)
     
     def rotate_objects(self):
         self.plan.rotateY(1)
         self.plan.rotateX(-1)
-        self.plan.rotateZ(1)
     
     def run(self):
-        #self.plan.foo()
         while 1:
             self.clock.tick(self.fps)
             
@@ -66,10 +64,10 @@ def main():
     pygame.font.init()
     screen = pygame.display.set_mode((640, 640))
     demo = Demo(screen)
-    demo.create_squares()
-    demo.create_pyramides()
+    #demo.create_squares()
+    #demo.create_pyramides()
     demo.create_crates()
-    demo.create_spheres()
+    #demo.create_spheres()
     print("Generation took %3f" % (time.time() - start))
     print("Running demo ...")
     demo.run()
