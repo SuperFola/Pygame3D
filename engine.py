@@ -305,7 +305,7 @@ class Line:
             # Transform the point from 3D to 2D
             p = r.project(screen.get_width(), screen.get_height(), self.line_size, 4 + self.zpos)
             if not var:
-                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.size, self.size))
+                screen.fill(self.color, (p.x + self.xpos, p.y + self.ypos, self.line_size, self.line_size))
             t.append(p)
         if var == 1 or var == 2:
             pygame.draw.line(screen, self.color, (t[0].x + self.xpos, t[0].y + self.ypos), (t[1].x + self.xpos, t[1].y + self.ypos))
@@ -333,15 +333,18 @@ class Line:
             Point3D(x, y, z),
             Point3D(x+xd, y+yd, z+zd)
         ]
+
+    def point_to2D(self, x, y):
+        self.vertices[1] = Point3D(x, y, self.line_size)
     
     def get_vertices(self):
         return [(i[0] + self.xpos, i[1] + self.ypos, i[2] + self.zpos) for i in self.vertices]
     
     def get_2D_pos(self, screen):
-        return [tuple(v.project(screen.get_width(), screen.get_height(), self.crate_size, 4 + self.zpos)) for v in self.vertices]
+        return [tuple(v.project(screen.get_width(), screen.get_height(), self.line_size, 4 + self.zpos)) for v in self.vertices]
     
     def get_size(self):
-        return self.size
+        return self.line_size
 
 
 class Pyramide:
@@ -815,6 +818,7 @@ class Scene:
         self.axis = axis
         self.dt = -1
         self.rotate = rotate
+        self.running = True
     
     def add_prefab(self, *objects):
         self.plan.add(*objects)
@@ -831,16 +835,19 @@ class Scene:
     
     def get_ticks(self):
         return self.dt
+
+    def process_event(self, event):
+        if event.type == QUIT:
+            self.running = False
+        if event.type == KEYDOWN and event.key == K_SPACE:
+            self.rotate = not self.rotate
     
     def run(self):
-        while True:
+        while self.running:
             self.dt = self.clock.tick(self.fps)
             
             event = pygame.event.poll()
-            if event.type == QUIT:
-                break
-            if event.type == KEYDOWN and event.key == K_SPACE:
-                self.rotate = not self.rotate
+            self.process_event(event)
             
             self.screen.fill((0, 0, 0))
             self.draw()
