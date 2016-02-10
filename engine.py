@@ -331,11 +331,16 @@ class Line:
     def set_vertices(self, x, y, z, xd=1, yd=1, zd=1):
         self.vertices = [
             Point3D(x, y, z),
-            Point3D(x+xd, y+yd, z+zd)
+            Point3D(x + xd, y + yd, z + zd)
         ]
 
-    def point_to2D(self, x, y):
-        self.vertices[1] = Point3D(x, y, self.line_size)
+    def point_to2D(self, x, y, screen):
+        z = math.sqrt(self.line_size ** 2 + abs(x - screen.get_width() // 2) ** 2 + abs(y - screen.get_height() // 2) ** 2)
+        factor = self.line_size / (4 + 2 * z)
+        x = (x - screen.get_width() // 2) / factor + screen.get_width() / 2
+        y = (- y - screen.get_height() // 2) / factor + screen.get_height() / 2
+        self.vertices[1] = Point3D(x, y, z)
+        return self.vertices[1]
     
     def get_vertices(self):
         return [(i[0] + self.xpos, i[1] + self.ypos, i[2] + self.zpos) for i in self.vertices]

@@ -24,8 +24,7 @@ class Demo(Scene):
             if event.key == K_DOWN:
                 self.rotateX(-5)
         if event.type == MOUSEBUTTONUP and event.button == 1:
-            self.gun.point_to2D(event.pos[0] - self.screen.get_width() // 2,
-                                event.pos[1] - self.screen.get_height() // 2)
+            print(self.gun.point_to2D(event.pos[0], event.pos[1], screen))
 
 
 if __name__ == '__main__':
