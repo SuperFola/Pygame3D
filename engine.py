@@ -819,6 +819,7 @@ class Scene:
         self.dt = -1
         self.rotate = rotate
         self.running = True
+        self.static_objects = []
     
     def add_prefab(self, *objects):
         self.plan.add(*objects)
@@ -827,6 +828,21 @@ class Scene:
         self.plan.draw(self.screen, self.method, only_visible=True)
         if self.axis:
             self.plan.draw_axis(self.screen)
+        for static_object in self.static_objects:
+            static_object.draw(self.screen, self.method)
+
+    def add_static_object(self, *objects):
+        for object in objects:
+            self.static_objects.append(object)
+
+    def rotateX(self, dir):
+        self.plan.rotateX(dir)
+
+    def rotateY(self, dir):
+        self.plan.rotateY(dir)
+
+    def rotateZ(self, dir):
+        self.plan.rotateZ(dir)
     
     def rotate_objects(self):
         self.plan.rotateY(self.p_rotat[0])
