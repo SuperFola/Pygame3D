@@ -273,7 +273,7 @@ class Plan3D:
     def draw_axis(self, screen):
         t = []
         for axe in self.axis:
-            r = axe.rotateX(self.xangle).rotateY(self.yangle).rotateZ(self.zangle)
+            r = axe.rot_x(self.xangle).rot_y(self.yangle).rot_z(self.zangle)
             p = r.project(screen.get_width(), screen.get_height(), 256, 4)
             t.append(p)
         pygame.draw.line(screen, RED, (t[0].x, t[0].y), (t[1].x, t[1].y))

@@ -49,10 +49,24 @@ class Demo:
             event = pygame.event.poll()
             if event.type == QUIT:
                 break
+            if event.type == KEYUP:
+                if event.key == K_UP:
+                    self.plan.rot_x(1)
+                elif event.key == K_DOWN:
+                    self.plan.rot_x(-1)
+                elif event.key == K_RIGHT:
+                    self.plan.rot_y(1)
+                elif event.key == K_LEFT:
+                    self.plan.rot_y(-1)
+                elif event.key == K_o:
+                    self.plan.rot_z(1)
+                elif event.key == K_p:
+                    self.plan.rot_z(-1)
             
             self.screen.fill((0, 0, 0))
+            self.plan.draw_axis(self.screen)
             self.draw_objects()
-            self.rotate_objects()
+            # self.rotate_objects()
             
             self.screen.blit(self.font.render("FPS:" + str(self.clock.get_fps()), 1, (180, 255, 255)), (0, 0))
             
