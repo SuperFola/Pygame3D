@@ -1,7 +1,9 @@
 from engine import *
 import random
-import pygame
-from pygame.locals import *
+
+
+X_LIM, Y_LIM = 20, 20
+PAD = 2
 
 
 class Demo:
@@ -15,38 +17,32 @@ class Demo:
     def create_squares(self, nb=10):
         print("Creating squares ...")
         for _ in range(nb):
-            self.plan.add(Square(color=(150, 150, 255), size=64, xpos=random.randrange(-1000, 1000, 32)))
+            self.plan.add(Square(color_=(150, 150, 255), size=64, xpos=random.randrange(-X_LIM, X_LIM, PAD)))
     
     def create_crates(self, nb=10):
         print("Creating crates ...")
         for _ in range(nb):
-            self.plan.add(Crate(size=64, color=(255, 150, 255), ypos=random.randrange(-1000, 1000, 32)))
+            self.plan.add(Crate(size=64, color_=(255, 150, 255), ypos=random.randrange(-Y_LIM, Y_LIM, PAD)))
     
     def create_pyramides(self, nb=10):
         print("Creating pyramides ...")
         for _ in range(nb):
-            self.plan.add(Pyramide(size=64, color=(150, 255, 255), xpos=random.randrange(-1000, 1000, 32), ypos=random.randrange(-1000, 1000, 32)))
+            self.plan.add(Pyramid(size=64, color_=(150, 255, 255), xpos=random.randrange(-X_LIM, X_LIM, PAD), ypos=random.randrange(-Y_LIM, Y_LIM, PAD)))
     
     def create_spheres(self, nb=10):
         print("Creating spheres ...")
         for _ in range(nb):
-            self.plan.add(Sphere(size=64, color=(255, 255, 150), xpos=random.randrange(-1000, 1000, 32), ypos=random.randrange(-1000, 1000, 32)))
-    
-    def create_hypercubes(self, nb=10):
-        print("Creating hypercubes ...")
-        for _ in range(nb):
-            self.plan.add(Hypercube(size=64, color=(150, 255, 150), xpos=random.randrange(-1000, 1000, 32), ypos=random.randrange(-1000, 1000, 32)))
+            self.plan.add(Sphere(size=64, color_=(255, 255, 150), xpos=random.randrange(-X_LIM, X_LIM, PAD), ypos=random.randrange(-Y_LIM, Y_LIM, PAD)))
     
     def draw_objects(self):
         self.plan.draw(self.screen, 1)
     
     def rotate_objects(self):
-        self.plan.rotateY(1)
-        self.plan.rotateX(-1)
-        self.plan.rotateZ(1)
+        self.plan.rot_y(1)
+        self.plan.rot_x(-1)
+        self.plan.rot_z(1)
     
     def run(self):
-        #self.plan.foo()
         while 1:
             self.clock.tick(self.fps)
             
@@ -71,11 +67,10 @@ def main():
     pygame.font.init()
     screen = pygame.display.set_mode((640, 640))
     demo = Demo(screen)
-    #demo.create_squares()
-    #demo.create_pyramides()
-    #demo.create_crates()
-    #demo.create_spheres()
-    demo.create_hypercubes(100)
+    demo.create_squares(5)
+    demo.create_pyramides(5)
+    demo.create_crates(5)
+    demo.create_spheres(5)
     print("Generation took %3f" % (time.time() - start))
     print("Running demo ...")
     demo.run()

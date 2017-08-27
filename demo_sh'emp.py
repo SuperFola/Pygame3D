@@ -6,7 +6,7 @@ from pygame.locals import *
 class Demo(Scene):
     def __init__(self, screen):
         super().__init__(screen, perpetual_rotation=(0, 0, 0))
-        self.gun = Line(color=RED)
+        self.gun = Line(color_=RED)
         self.add_static_object(self.gun)
 
     def process_event(self, event):
